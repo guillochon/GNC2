@@ -67,6 +67,7 @@ OBJS+= coenr.o star_aux_sub.o   ini_cond.o
 OBJS+=run_contrl.o  dstr_subs_2d.o md_dms_saving_data.o  
 OBJS+=event_data.o md_mbh_evl_acc.o stellar_evolution.o
 OBJS+=config.o ini_paras.o  update_sample_para.o md_bk_particle.o md_by_particle.o
+OBJS+=md_particle_collision.o
   
 OBJS+=RR_mpi.o  
 
@@ -88,7 +89,9 @@ all: $(OUT)
 
 md_mbh_evl_acc.o: stellar_obj.o md_particle_sample.o
 
-md_particle_collision.o: md_bk_particle.o stellar_obj.o modules.o 
+md_particle_collision.o: md_main_gw.o
+
+run_contrl.o io_hdf5.o: md_particle_collision.o
 
 md_particle_sample.o : md_binary.o  md_stellar_history.o
 

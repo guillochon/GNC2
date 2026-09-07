@@ -26,6 +26,7 @@ module md_dms_saving_data
 		type(sts_fc_type)::fd_emris_ecc  ! distribution of eccentricity at 1mHz
 		type(s2d_hst_ird_type)::fd_emris_nxj_ir
 		type(snap_event)::se_td ! tidal disruption
+		type(snap_event)::se_coll ! star-star collision destroy
 		contains
 		procedure::write_bin_dms_saving_data
 		procedure::read_bin_dms_saving_data

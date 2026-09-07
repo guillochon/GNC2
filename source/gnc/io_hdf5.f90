@@ -5,6 +5,7 @@ SUBROUTINE save_dms_aux_data_hdf5(dm,spp,group_id)
 	use md_hdf5	
 	use com_main_gw
 	use md_event_datas
+	use md_particle_collision
 	implicit none
 	type(diffuse_mspec)::dm
 	type(star_pot_para)::spp
@@ -25,6 +26,11 @@ SUBROUTINE save_dms_aux_data_hdf5(dm,spp,group_id)
     call dm%pd%save_hdf5(sub_group_id,"pd")
     call dm%rp%save_hdf5(sub_group_id,"rp")
 	call dm%ra%save_hdf5(sub_group_id,"ra")
+	if(coll_tables_ready)then
+		call coll_gamma%save_hdf5(sub_group_id,"gamma_coll")
+		call coll_n_collid%save_hdf5(sub_group_id,"n_collid")
+		call coll_vrel%save_hdf5(sub_group_id,"vrel_coll")
+	end if
  
 	call h5gclose_f(sub_group_id,error)
 	!call hdf5_file%close()
@@ -318,6 +324,13 @@ subroutine write_down_oe_attributions(group_id,gname,star_type_number,oe)
 				if(oe%se_td%nw>0)then
 					call oe%se_td%fdstr_x%save_hdf5(hg%group_id,"td_x_dstr")
 					call oe%se_td%fdstr_m%save_hdf5(hg%group_id,"td_m_dstr")
+				end if
+			end if
+			if(ctl%stellar_collision_method.ge.1)then
+				call write_down_se_attributions(oe%se_coll,hg%group_id,"coll")
+				if(oe%se_coll%nw>0)then
+					call oe%se_coll%fdstr_x%save_hdf5(hg%group_id,"coll_x_dstr")
+					call oe%se_coll%fdstr_m%save_hdf5(hg%group_id,"coll_m_dstr")
 				end if
 			end if
 			if(ctl%gw_radiation_otby.ge.1)then

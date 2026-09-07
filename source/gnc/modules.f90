@@ -183,9 +183,11 @@ module model_basic
 		integer::init_adb_mbh_inc 
 		integer::two_body_relaxation_on
 
-		integer stellar_collision_pair_mode
-		integer stellar_collision_method
-		integer collision_consider_weight
+		integer::stellar_collision_pair_mode=1
+		integer::stellar_collision_method=0
+		integer::collision_consider_weight=0
+		real(8)::tmax_collision=1d99
+		real(8)::tfractor_collision=0.02d0
 		
 		integer::del_cross_clone
 		integer::consider_by_types(5)
@@ -371,7 +373,9 @@ contains
 		case(exit_tidal_empty)
 			str_flag="TD EMPTY"
 		case(exit_tidal_full)
-			str_flag="TD FULL"        
+			str_flag="TD FULL"
+		case(exit_collision)
+			str_flag="COLLISION"
 		case default
 			str_flag="Null"
 		end select

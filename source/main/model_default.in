@@ -193,6 +193,19 @@ minimum number of samples in mass bin = 40
 two body relaxation             =1
 
 ---------------------------------------------------------
+####   Whether turn on orbit-averaged destructive star-star collisions
+####   Default OFF. When =1, samples are removed with p=1-exp(-<Gamma> dt)
+####   using Gamma(r)=n sigma v_rel and gravitational focusing.
+####   --pair mode = 0: same mass bin only; =1: all-pairs n sigma v
+####   --consider weight = 0: Bernoulli destroy; =1: also reduce sample weight
+####   --timestep fraction: cap snapshot dt by this times the minimum collision time
+
+stellar collisions              =0
+--pair mode                     =1
+--consider weight               =0
+--timestep fraction             =0.02
+
+---------------------------------------------------------
 ####  The criteria of convergence of potential: convergence is achieved if less than the value
 ####  
 

@@ -262,6 +262,17 @@ subroutine apply_paras()
 				read(unit=pvalue,fmt=*) ctl%output_dms_freq
 			case("two body relaxation")
 				read(unit=pvalue,fmt=*) ctl%two_body_relaxation_on
+			case("stellar collisions")
+				read(unit=pvalue,fmt=*) ctl%stellar_collision_method
+				if(tp%nsub.gt.0)then
+					call tp%get_sub_para("--pair mode",str,ier)
+					read(unit=str,fmt=*) ctl%stellar_collision_pair_mode
+					call tp%get_sub_para("--consider weight",str,ier)
+					read(unit=str,fmt=*) ctl%collision_consider_weight
+					call tp%get_sub_para("--timestep fraction",str,ier)
+					read(unit=str,fmt=*) ctl%tfractor_collision
+				end if
+				ctl%tmax_collision=1d99
 			case("convergence of potential critical value")
 				read(unit=pvalue,fmt=*)  ctl%gx_conv_cri 
 			case("max iteration of potential convergence")

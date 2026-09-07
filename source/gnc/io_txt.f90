@@ -85,6 +85,10 @@ subroutine output_sams_sg_track_txt(sps, fl)
 						call output_sample_track_txt(sp,trim(adjustl(fl))//"/plunge/bh/evl_sg_"//trim(adjustl(itmp)))
 					end if
 				end select
+			case(exit_collision)
+				if(ctl%chattery.ge.1)then
+					print*, "collision destroy, i=",i
+				end if
 			case(exit_tidal_empty,exit_tidal_full)
 				num=num+1
 				print*, "td, num=",num, itmp,ctl%output_track_td

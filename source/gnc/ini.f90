@@ -158,6 +158,9 @@ subroutine init_model_ctl()
 	star_type_ns, star_type_wd, star_type_bd, star_type_rg,star_type_dark_matter,star_type_nakedHe/) 
 	
 	ctl%idx_stellar_type(1:n_tot_comp_sg)=ctl%idx_stellar_type_sg(1:n_tot_comp_sg) 
+
+	if(ctl%tfractor_collision.le.0d0) ctl%tfractor_collision=0.02d0
+	ctl%tmax_collision=1d99
 	
 end subroutine
 

@@ -129,7 +129,7 @@ class S1d:
 class Object_rates:
     
     def __init__(self,nl):
-        self.typelist=["ls", "td", "emris", "emax"]
+        self.typelist=["ls", "td", "emris", "emax", "coll"]
         self.size=nl
         self.alpha_mean=0
         self.fmden=S1d()
@@ -369,6 +369,11 @@ def get_one_rates(fdir,nl,print_err=True):
             sr.obj[key].d["emax"].t[i]=sr.t[i]
             sr.obj[key].d["emax"].dt[i]=sr.dt[i]
             sr.obj[key].d["emax"].logt[i]=sr.logt[i]
+
+            sr.obj[key].readhdf5(fl,key,"coll",i,print_err=print_err)
+            sr.obj[key].d["coll"].t[i]=sr.t[i]
+            sr.obj[key].d["coll"].dt[i]=sr.dt[i]
+            sr.obj[key].d["coll"].logt[i]=sr.logt[i]
             
             # sr.obj[key].fmden
 

@@ -287,9 +287,10 @@ subroutine get_dms_saving_data(star_type_number,oe,ed)
 	integer star_type_number
 	type(particle_samples_arr_type)::bksma_arr_sel,bksma_arr_emri
 	type(particle_samples_arr_type)::bksma_arr_ms_td,bksma_arr_lc
+	type(particle_samples_arr_type)::bksma_arr_coll
 	real(8) nr, nw
 	real(8),allocatable::x(:),w(:)
-	logical,external::selection_emri,selection_td
+	logical,external::selection_emri,selection_td,selection_collision
 	type(obj_events)::oe
 	type(event_data)::ed
 
@@ -313,6 +314,11 @@ subroutine get_dms_saving_data(star_type_number,oe,ed)
 		call dms_saving_data_record(bksma_arr_ms_td,ed%td)
 		call bksma_arr_sel%select(bksma_arr_lc,exit_lc,-1,-1d0,-1d0)
 		call dms_saving_data_get_sts(bksma_arr_lc,oe%se_lc)
+	end if
+
+	if(ctl%stellar_collision_method.ge.1)then
+		call sams_arr_select_condition_single(bksma_arr_sel,bksma_arr_coll,selection_collision)
+		call dms_saving_data_get_sts(bksma_arr_coll,oe%se_coll)
 	end if
 
 	if(ctl%gw_radiation_otby.ge.1)then
@@ -511,6 +517,15 @@ logical function selection_td(sp)
 	selection_td=.false.
 	if(flag.eq.exit_tidal_full.or.flag.eq.exit_tidal_empty.and.sp%m>0.01d0)then
 		selection_td=.true.
+	end if
+end function
+logical function selection_collision(sp)
+	use md_particle_sample
+	implicit none
+	type(particle_sample_type)::sp
+	selection_collision=.false.
+	if(sp%exit_flag.eq.exit_collision)then
+		selection_collision=.true.
 	end if
 end function
 

@@ -1,6 +1,7 @@
 
 subroutine run_one_snap(cur_time_i, cur_time_f,  smsa, n,update_dms)
     use com_main_gw
+    use md_particle_collision
     implicit none
     real(8) cur_time_f, cur_time_i!, cur_time_f_istep
     integer n, ierr, istep
@@ -76,6 +77,10 @@ subroutine run_one_snap(cur_time_i, cur_time_f,  smsa, n,update_dms)
             call get_dms(dms) 
 
         end if
+    end if
+    if(ctl%stellar_collision_method.ge.1)then
+        call update_stellar_collision_rates()
+        call apply_stellar_collision_operator(cur_time_f-cur_time_i)
     end if
     if(rid.eq.0)then 
         call show_memory_usage()
@@ -277,15 +282,11 @@ subroutine get_trlx_min_across_cluster(trlxmin)
 end subroutine
 subroutine get_simu_time_step(dt)
     use com_main_gw
-     
+    use md_particle_collision
     use md_mbh_evl_acc
     implicit none
-    real(8) trlx,dt, tmax_collision,tmin_acc
+    real(8) trlx,dt, tmin_acc
     real(8) tmin_star_formation
-    
-    !real(8),parameter::tfractor_collision=0.02
-
-    tmax_collision=1d99
     
     select case(trim(ctl%time_unit))
     case("TNR")
@@ -325,6 +326,16 @@ subroutine get_simu_time_step(dt)
     end if 
 
     dt=min(dt,ctl%tmax_timestep)
+
+    if(ctl%stellar_collision_method.ge.1)then
+        if(.not.coll_tables_ready)then
+            call update_stellar_collision_rates()
+        end if
+        dt=min(dt,ctl%tmax_collision)
+        if(rid.eq.0)then
+            print*, "tmax_collision=",ctl%tmax_collision
+        end if
+    end if
 
     if(rid.eq.0)then
         print*, "dt=",dt

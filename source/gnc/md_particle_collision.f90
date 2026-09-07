@@ -42,8 +42,11 @@ contains
 			return
 		end if
 		v2=max(vrel*vrel,v2min)
-		! G=1, masses in Msun, lengths in AU, velocity in AU/code-time
+		! G=1 AU/Msun (same physical units as get_trlx_* / star_Radius).
+		! Cap focusing: a numerically vanishing vrel (1e-11 vs Kepler ~1e3)
+		! otherwise makes 2GM/(R v^2) ~ 1e24 and Gamma ~ 1e12 /Myr.
 		focus=1d0+2d0*(m1+m2)/(rsum*v2)
+		if(focus.gt.1d6) focus=1d6
 		collision_sigma=pi*rsum*rsum*focus
 	end function
 
@@ -184,9 +187,9 @@ contains
 		implicit none
 		type(s1d_type)::fden
 		real(8) rho_tmp,rho_tot,phi_tmp,vh,n_phys,logr,r_xy
-		real(8) gamma_max,gamma_r,sig,vrel,n_j
+		real(8) gamma_max,gamma_r,sig,vrel,n_j,v_char
 		real(8),external::star_Radius
-		integer i,k,j
+		integer i,k,j,igmax
 
 		if(ctl%stellar_collision_method.lt.stellar_collision_method_oa_destroy)then
 			ctl%tmax_collision=1d99
@@ -246,7 +249,13 @@ contains
 			if(rho_tot.gt.0d0)then
 				call get_v_dispersion_one_ir(dms%all%all%barge_ir,phi_tmp,rho_tot,vh)
 			end if
-			if(vh.gt.0d0.and.ieee_is_finite(vh))then
+			! get_v_dispersion can return ~1e-11 when barge_ir has no support
+			! but fmden is extrapolated (C0c snap1 i=3). Relaxation already
+			! skips vh<1d-5; collisions cannot — Gamma_focus ~ 1/v.
+			! Require vh to be a non-tiny fraction of the local circular speed.
+			v_char=0d0
+			if(phi_tmp.gt.0d0) v_char=sqrt(phi_tmp)*ctl%v0
+			if(vh.gt.0d0.and.ieee_is_finite(vh).and.vh.gt.1d-4*v_char)then
 				! mean relative speed of two Maxwellians: 4/sqrt(pi) * sigma_1D
 				vrel=4d0/sqrt(pi)*vh
 			else
@@ -298,8 +307,14 @@ contains
 		coll_tables_ready=.true.
 
 		if(rid.eq.0)then
+			igmax=maxloc(coll_gamma%fx,1)
 			print*, "stellar collision: gamma_max(1/Myr), tmax_collision(Myr)=", &
 				gamma_max, ctl%tmax_collision
+			if(igmax.ge.1.and.igmax.le.coll_gamma%nbin)then
+				print*, "stellar collision: logr, r/r0, vrel, n_phys at gamma_max=", &
+					coll_gamma%xb(igmax), 10**coll_gamma%xb(igmax), &
+					coll_vrel%fx(igmax), coll_n_phys%fx(igmax)
+			end if
 		end if
 	end subroutine
 

@@ -286,6 +286,12 @@ subroutine apply_paras()
 					read(unit=str,fmt=*) ctl%engine_max_boost
 					call tp%get_sub_para("--beamed udr",str,ier)
 					read(unit=str,fmt=*) ctl%engine_beamed
+					! Optional: snap-1 seed so the first DC build has Gamma>0.
+					! Missing key keeps the default 0 (old behavior).
+					call tp%get_sub_para_optional("--initial tde rate",str,ier)
+					if(ier.eq.0)then
+						read(unit=str,fmt=*) ctl%engine_init_tde_rate
+					end if
 				end if
 			case("convergence of potential critical value")
 				read(unit=pvalue,fmt=*)  ctl%gx_conv_cri 

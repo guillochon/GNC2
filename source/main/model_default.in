@@ -218,12 +218,15 @@ stellar collisions              =0
 ####                 =0 uses the solved M_MC (nearly rate-independent nm2)
 ####   --max boost: cap on t_rlx,* / t_rlx,MC
 ####   --beamed udr: 1 = disk-fed (b=1); 0 = isotropic (b=f_Omega)
+####   --initial tde rate: yr^-1 seed used only while se_td%rate is still 0
+####                 (snap 1 / first get_simu_time_step). 0 = old behavior.
 
 engine feedback                 =0
 --disk covering                 =0.2
 --cloud mass                    =1.2e4
 --max boost                     =100
 --beamed udr                    =1
+--initial tde rate              =0
 
 ---------------------------------------------------------
 ####  The criteria of convergence of potential: convergence is achieved if less than the value

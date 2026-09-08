@@ -194,6 +194,7 @@ module model_basic
 		real(8)::engine_f_omega=0.2d0
 		real(8)::engine_cloud_mass=1.2d4
 		real(8)::engine_max_boost=1d2
+		real(8)::engine_init_tde_rate=0d0
 		real(8)::engine_relax_boost=1d0
 		real(8)::engine_nm2_cloud=0d0
 		real(8)::engine_n_mc=0d0

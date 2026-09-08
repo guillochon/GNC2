@@ -44,7 +44,12 @@ contains
 			return
 		end if
 
+		! Measured se_td%rate is from the *previous* snapshot, so snap 1 is 0.
+		! If a seed --initial tde rate (yr^-1) is set, use it until events exist.
 		gamma_yr=oe_star%se_td%rate/1d6
+		if(gamma_yr.le.0d0.and.ctl%engine_init_tde_rate.gt.0d0)then
+			gamma_yr=ctl%engine_init_tde_rate
+		end if
 		ctl%engine_gamma_tde=gamma_yr
 		if(gamma_yr.le.0d0)then
 			call engine_feedback_reset()

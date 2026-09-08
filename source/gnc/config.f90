@@ -11,6 +11,7 @@ module model_config
         contains 
         procedure::init=>init_type_para
         procedure::get_sub_para
+        procedure::get_sub_para_optional
     end type
     
 
@@ -29,7 +30,7 @@ module model_config
     end type
     
     type(type_paras_all)::pa_default, pa_usr_set, pa_now_used
-    private::init_type_paras_all,get_sub_para
+    private::init_type_paras_all,get_sub_para,get_sub_para_optional
     private::print_type_paras_all,init_type_para,save_to_txt_type_paras_all
 contains
 
@@ -49,6 +50,22 @@ subroutine get_sub_para(this,sub,str,ier)
     ier=-1
     print*, "error! no sub_para find:", trim(adjustl(sub))
     stop
+end subroutine
+subroutine get_sub_para_optional(this,sub,str,ier)
+    implicit none
+    class(type_para)::this
+    character*(50) str
+    character*(*) sub
+    integer i,ier
+    ier=0
+    str=""
+    do i=1, this%nsub
+        if(trim(adjustl(sub))==trim(adjustl(this%sub_para(i)%name)))then
+            str=trim(adjustl(this%sub_para(i)%str))
+            return
+        end if
+    end do
+    ier=-1
 end subroutine
 subroutine init_type_paras_all(this,n)
     implicit none

@@ -56,7 +56,10 @@ mbh spin = 0
 ####   Whether the MBH mass is growing
 
 mbh mass growth  = 0
-####   If ``mbh mass growth=1'', need to specify the initial mass of the gas reservoir (msun)
+####   If ``mbh mass growth=1'', Mbh grows when the BH swallows/plunges a star
+####   (full stellar mass) or tidally disrupts one (bound debris, 0.5 M_star).
+####   Unbound TDE debris is not added to Mbh. Optional leftover / stellar-
+####   evolution gas accretes at the Eddington rate from the reservoir.
 ####   --initial gas reservoir=0
 
 ####  Radiative efficiency

@@ -1,7 +1,8 @@
 module md_mbh_evl_acc
     use md_mass_bins
     implicit none
-    real(8),parameter::td_direct_frac(n_tot_comp_sg)=0d0 !(/0d0,0d0,0d0,0d0,0d0,0d0,0d0,0d0/)
+    ! Complete TDE: bound debris is added to Mbh immediately; unbound is UDR (not accreted).
+    real(8),parameter::td_bound_frac=0.5d0
     integer,parameter::mmg_num_of_arrays=12
     integer,parameter::mmg_real_length=n_tot_comp_sg*mmg_num_of_arrays+1!+5
     type mass_mbh_growth
@@ -139,7 +140,6 @@ contains
         mmg%lc_direct_acum=mmg%lc_direct_acum+mmg%lc_direct
         mmg%td_direct_acum=mmg%td_direct_acum+mmg%td_direct
         mmg%td_disc_acum=mmg%td_disc_acum+mmg%td_disc
-        mmg%td_direct_acum=mmg%td_direct_acum+mmg%td_direct 
         mmg%emax_direct_acum=mmg%emax_direct_acum+mmg%emax_direct
         mmg%emri_acum=mmg%emri_acum+mmg%emri
         mmg%mass_loss_stellar_evolution_acum=mmg%mass_loss_stellar_evolution_acum &
@@ -149,7 +149,9 @@ contains
         implicit none
         type(mass_mbh_growth)::mmg
 
-        mmg%gas_reservior_add=sum(mmg%td_disc)+ mmg%mass_loss_stellar_evolution
+        ! Stellar-evolution mass loss can still trickle through the reservoir.
+        ! Unbound TDE debris (td_disc) is UDR and is not added to Mbh.
+        mmg%gas_reservior_add=mmg%mass_loss_stellar_evolution
         mmg%gas_reservior_add_acum=mmg%gas_reservior_add_acum+mmg%gas_reservior_add
         mmg%mass_direct_swallow=sum(mmg%lc_direct)+sum(mmg%td_direct)+sum(mmg%emax_direct)+sum(mmg%emri)
         mmg%mass_direct_swallow_acum=mmg%mass_direct_swallow_acum+ mmg%mass_direct_swallow
@@ -198,8 +200,9 @@ contains
         call get_obidx_from_type_sg(sp%obtype,idx)
         select case(sp%exit_flag)
         case(exit_tidal_empty,exit_tidal_full)
-            mmg%td_direct(idx)=mmg%td_direct(idx)+mass*td_direct_frac(idx)
-            mmg%td_disc(idx)=mmg%td_disc(idx)+mass*(1-td_direct_frac(idx))
+            ! Bound half -> Mbh this snap; unbound half stays in td_disc for HDF5 / UDR.
+            mmg%td_direct(idx)=mmg%td_direct(idx)+mass*td_bound_frac
+            mmg%td_disc(idx)=mmg%td_disc(idx)+mass*(1d0-td_bound_frac)
         case(exit_lc)
             mmg%lc_direct(idx)=mmg%lc_direct(idx)+mass
         case(exit_boundary_max)

@@ -85,9 +85,11 @@ subroutine apply_paras()
 			case("mbh mass growth")
 				read(unit=pvalue, fmt=*) ctl%enable_evl_mbh
 				if(ctl%enable_evl_mbh.ge.1)then
-					call tp%get_sub_para("--initial gas reservoir", str,ier)
-					!print*, "get sub str=", str
-					read(unit=str,fmt=*) mbh_mmg%gas_reservior_left
+					mbh_mmg%gas_reservior_left=0d0
+					call tp%get_sub_para_optional("--initial gas reservoir", str,ier)
+					if(ier.eq.0)then
+						read(unit=str,fmt=*) mbh_mmg%gas_reservior_left
+					end if
 				end if
 			case("init adiabatically response of mbh")
 				read(unit=pvalue, fmt=*) ctl%init_adb_mbh_inc

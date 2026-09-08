@@ -188,6 +188,19 @@ module model_basic
 		integer::collision_consider_weight=0
 		real(8)::tmax_collision=1d99
 		real(8)::tfractor_collision=0.02d0
+
+		integer::engine_feedback=0
+		integer::engine_beamed=1
+		real(8)::engine_f_omega=0.2d0
+		real(8)::engine_cloud_mass=1.2d4
+		real(8)::engine_max_boost=1d2
+		real(8)::engine_relax_boost=1d0
+		real(8)::engine_nm2_cloud=0d0
+		real(8)::engine_n_mc=0d0
+		real(8)::engine_r_b=0d0
+		real(8)::engine_R_mc=0d0
+		real(8)::engine_M_mc=0d0
+		real(8)::engine_gamma_tde=0d0
 		
 		integer::del_cross_clone
 		integer::consider_by_types(5)

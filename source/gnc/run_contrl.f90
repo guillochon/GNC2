@@ -163,6 +163,9 @@ contains
     else
         !call get_lambda(lglambda)
         lglambda=log(spp_new%mbh*0.5)
+        if(ctl%engine_feedback.ge.1.and.ctl%engine_relax_boost.gt.1d0)then
+            lglambda=lglambda*ctl%engine_relax_boost
+        end if
     end if
     call get_rh_now(rh_now)
     !call get_rh_in_pc(mbh,rh_now)
@@ -283,10 +286,15 @@ end subroutine
 subroutine get_simu_time_step(dt)
     use com_main_gw
     use md_particle_collision
+    use md_engine_feedback
     use md_mbh_evl_acc
     implicit none
     real(8) trlx,dt, tmin_acc
     real(8) tmin_star_formation
+
+    if(ctl%engine_feedback.ge.1)then
+        call engine_feedback_update()
+    end if
     
     select case(trim(ctl%time_unit))
     case("TNR")

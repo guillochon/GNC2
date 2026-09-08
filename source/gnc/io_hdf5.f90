@@ -214,6 +214,14 @@ subroutine write_down_attributions(dm,group_id)
 
 	call get_rh_now(rh_now)
 	call add_attr_dble(group_id,attr_id, "rh(pc)", 10**rh_now*r0_cl/pc)
+	if(ctl%engine_feedback.ge.1)then
+		call add_attr_dble(group_id,attr_id, "engine_n_mc", ctl%engine_n_mc)
+		call add_attr_dble(group_id,attr_id, "engine_r_b(pc)", ctl%engine_r_b)
+		call add_attr_dble(group_id,attr_id, "engine_R_mc(pc)", ctl%engine_R_mc)
+		call add_attr_dble(group_id,attr_id, "engine_M_mc", ctl%engine_M_mc)
+		call add_attr_dble(group_id,attr_id, "engine_relax_boost", ctl%engine_relax_boost)
+		call add_attr_dble(group_id,attr_id, "engine_gamma_tde", ctl%engine_gamma_tde)
+	end if
 	if(ctl%enable_evl_mbh.ge.1)then
 		call hg%create(group_id,"dMbh")
 		call write_hdf5_mass_mbh_growth(hg%group_id,mbh_mmg)

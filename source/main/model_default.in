@@ -206,6 +206,23 @@ stellar collisions              =0
 --timestep fraction             =0.02
 
 ---------------------------------------------------------
+####   GL2026 heuristic engine feedback (default OFF).
+####   Maps the previous snapshot TDE rate to a molecular-cloud density
+####   from covering + tidal + virial (Guillochon & Loeb 2026 Sec. IV),
+####   then boosts two-body relaxation (Coulomb log / diffusion coeffs).
+####   --disk covering: f_Omega of the circumnuclear disk (fiducial 0.2)
+####   --cloud mass: Msun; >0 holds M_MC fixed so boost ∝ n_MC (positive loop).
+####                 =0 uses the solved M_MC (nearly rate-independent nm2)
+####   --max boost: cap on t_rlx,* / t_rlx,MC
+####   --beamed udr: 1 = disk-fed (b=1); 0 = isotropic (b=f_Omega)
+
+engine feedback                 =0
+--disk covering                 =0.2
+--cloud mass                    =1.2e4
+--max boost                     =100
+--beamed udr                    =1
+
+---------------------------------------------------------
 ####  The criteria of convergence of potential: convergence is achieved if less than the value
 ####  
 

@@ -273,6 +273,18 @@ subroutine apply_paras()
 					read(unit=str,fmt=*) ctl%tfractor_collision
 				end if
 				ctl%tmax_collision=1d99
+			case("engine feedback")
+				read(unit=pvalue,fmt=*) ctl%engine_feedback
+				if(tp%nsub.gt.0)then
+					call tp%get_sub_para("--disk covering",str,ier)
+					read(unit=str,fmt=*) ctl%engine_f_omega
+					call tp%get_sub_para("--cloud mass",str,ier)
+					read(unit=str,fmt=*) ctl%engine_cloud_mass
+					call tp%get_sub_para("--max boost",str,ier)
+					read(unit=str,fmt=*) ctl%engine_max_boost
+					call tp%get_sub_para("--beamed udr",str,ier)
+					read(unit=str,fmt=*) ctl%engine_beamed
+				end if
 			case("convergence of potential critical value")
 				read(unit=pvalue,fmt=*)  ctl%gx_conv_cri 
 			case("max iteration of potential convergence")

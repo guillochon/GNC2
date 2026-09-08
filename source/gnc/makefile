@@ -20,8 +20,9 @@ endif
 libdir:=$(dir)glib/com/
 outdir:=$(dir)glib/gnc/
 mobsedir:=$(dir)glib/mobse/
+# Production: -O3, no runtime array checks. Debug used to add -fcheck=all -fbounds-check.
 FLAG= -O3 -fopenmp -fbacktrace \
-		-L$(libdir) -I$(libdir) -lmycom2 -fcheck=all -Waliasing -Wuninitialized -fbounds-check   -cpp \
+		-L$(libdir) -I$(libdir) -lmycom2 -Waliasing -Wuninitialized -cpp \
 		-fimplicit-none -ffast-math -malign-double
 ifeq ($(use_mobse),1)
 	FLAG+=-L$(mobsedir) -I$(mobsedir) -lmobse -DMOBSE
@@ -67,6 +68,7 @@ OBJS+= coenr.o star_aux_sub.o   ini_cond.o
 OBJS+=run_contrl.o  dstr_subs_2d.o md_dms_saving_data.o  
 OBJS+=event_data.o md_mbh_evl_acc.o stellar_evolution.o
 OBJS+=config.o ini_paras.o  update_sample_para.o md_bk_particle.o md_by_particle.o
+OBJS+=md_particle_collision.o md_engine_feedback.o
   
 OBJS+=RR_mpi.o  
 
@@ -88,7 +90,11 @@ all: $(OUT)
 
 md_mbh_evl_acc.o: stellar_obj.o md_particle_sample.o
 
-md_particle_collision.o: md_bk_particle.o stellar_obj.o modules.o 
+md_particle_collision.o: md_main_gw.o
+
+md_engine_feedback.o: md_main_gw.o md_dms_saving_data.o
+
+run_contrl.o io_hdf5.o: md_particle_collision.o md_engine_feedback.o
 
 md_particle_sample.o : md_binary.o  md_stellar_history.o
 

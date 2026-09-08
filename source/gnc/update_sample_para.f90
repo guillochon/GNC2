@@ -149,7 +149,8 @@ subroutine get_sample_para_one(dm,sp,spp)
     real(8) ex, logex, jc, jc_dmless
     real(8) rmax, rc,jm,jc_xy,rp_xy,ra_xy
     real(8) pd_xy,p_EJ_dmless_fast,r_c_iter!, jph_dmless
-    integer ier
+    integer ier, idy
+    real(8) rdy, evjum
     if(ctl%chattery.ge.4)then
         print*, "==get_sample_para_one==================="
                 !start=======================================
@@ -170,7 +171,7 @@ subroutine get_sample_para_one(dm,sp,spp)
     call set_jm_bound(sp%jm)
     !===========================
     jm=sp%jm 
-    call get_jm_idx(sp%jm, sample_table_idy,sample_table_rdy,sample_evjum)
+    call get_jm_idx(sp%jm, idy, rdy, evjum)
     sp%jph=jm*sp%jc
     if(jc_xy.eq.0)then
         sp%rp=10**dms%logrmin*r0_cl

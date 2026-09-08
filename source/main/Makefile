@@ -27,8 +27,9 @@ comdir:=$(dir)glib/com/
 libdir:=$(dir)glib/gnc/
 mobsedir:=$(dir)glib/mobse/
 
+# Production: -O3, no runtime array checks. Debug used to add -fcheck=all.
 FLAG=-I$(libdir) -L$(libdir) -lgnc2 -fstack-arrays \
--I$(comdir) -L$(comdir) -lmycom2 -fopenmp -O3 -fcheck=all -fbacktrace -cpp   -fimplicit-none \
+-I$(comdir) -L$(comdir) -lmycom2 -fopenmp -O3 -fbacktrace -cpp   -fimplicit-none \
 -malign-double
 
 ifeq ($(use_hdf5),1)

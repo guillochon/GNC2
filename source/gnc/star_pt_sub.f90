@@ -1285,7 +1285,8 @@ subroutine get_sample_para_one_no_pd(dm,sp,spp)
 	 real(8) ex, logex, jc, jc_dmless
 	 real(8) rmax, rc,jm,jc_xy,rp_xy,ra_xy
 	 real(8) pd_xy,p_EJ_dmless,r_c_iter
-	 integer ier
+	 integer ier, idy
+	 real(8) rdy, evjum
 
 	 ex=sp%x
 	 logex=log10(ex)
@@ -1303,7 +1304,7 @@ subroutine get_sample_para_one_no_pd(dm,sp,spp)
 	 call set_jm_bound(sp%jm)
 	 !===========================
 	 jm=sp%jm
-	 call get_jm_idx(sp%jm, sample_table_idy,sample_table_rdy,sample_evjum)
+	 call get_jm_idx(sp%jm, idy, rdy, evjum)
 	 sp%jph=jm*sp%jc
  
 

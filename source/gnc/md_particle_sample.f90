@@ -56,7 +56,8 @@ module md_particle_sample
     integer,parameter::exit_normal=1
     integer,parameter::exit_other=100   
 	integer,parameter::exit_stellar_evl_supnov=105     
-	integer,parameter::exit_emri_single=180, exit_lc=181 
+	integer,parameter::exit_emri_single=180, exit_lc=181
+	integer,parameter::exit_collision=182 
     
     integer,parameter::exit_tidal=2
     integer,parameter::exit_by_ignore=20

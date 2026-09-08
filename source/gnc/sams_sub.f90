@@ -356,6 +356,9 @@ end subroutine
     real(8),parameter::gamma0=0.4
     !print*, "m0_cl,spp_new%N_r_within_max,gamma0", m0_cl, spp_new%N_r_within_max,gamma0, spp_new%M_r_within_max
     lambda=log(m0_cl*spp_new%N_r_within_max*gamma0)
+    if(ctl%engine_feedback.ge.1.and.ctl%engine_relax_boost.gt.1d0)then
+        lambda=lambda*ctl%engine_relax_boost
+    end if
     !print*, "lambda=",lambda
    ! read(*,*)
  end subroutine

@@ -9,6 +9,10 @@
 ####   Can only be ``ISO'' 
 
 init type of f(j)   =ISO
+####   Optional IC override: 1 draws jm uniform in [0.8, 1] (GL2026 disk-fed).
+####   Default 0 keeps isotropic f(j)∝j from the ISO case above. C1f must stay 0.
+
+disk fed j = 0
 
 ------------------------------------------------------------------
 ####   Initially the cluster response adiabatically with growth of MBH mass (before the main run)
@@ -56,7 +60,10 @@ mbh spin = 0
 ####   Whether the MBH mass is growing
 
 mbh mass growth  = 0
-####   If ``mbh mass growth=1'', need to specify the initial mass of the gas reservoir (msun)
+####   If ``mbh mass growth=1'', Mbh grows when the BH swallows/plunges a star
+####   (full stellar mass) or tidally disrupts one (bound debris, 0.5 M_star).
+####   Unbound TDE debris is not added to Mbh. Optional leftover / stellar-
+####   evolution gas accretes at the Eddington rate from the reservoir.
 ####   --initial gas reservoir=0
 
 ####  Radiative efficiency
@@ -191,6 +198,43 @@ minimum number of samples in mass bin = 40
 ####  
 
 two body relaxation             =1
+
+---------------------------------------------------------
+####   Whether turn on orbit-averaged star-star collisions
+####   Default OFF. When =1, samples are hit with p=1-exp(-<Gamma> dt)
+####   using Gamma(r)=n sigma v_rel and gravitational focusing.
+####   Outcome: v_rel < vesc=sqrt(2G(M1+M2)/(R1+R2)) keeps the sample and
+####   redraws J uniform in (0,Jc] (merger / orbit randomization);
+####   v_rel >= vesc destroys the sample (exit_collision).
+####   Mass is not grown (one-body vs field; discrete bins).
+####   --pair mode = 0: same mass bin only; =1: all-pairs n sigma v
+####   --consider weight = 0: Bernoulli hit; =1: also reduce sample weight
+####   --timestep fraction: cap snapshot dt by this times the minimum collision time
+
+stellar collisions              =0
+--pair mode                     =1
+--consider weight               =0
+--timestep fraction             =0.02
+
+---------------------------------------------------------
+####   GL2026 heuristic engine feedback (default OFF).
+####   Maps the previous snapshot TDE rate to a molecular-cloud density
+####   from covering + tidal + virial (Guillochon & Loeb 2026 Sec. IV),
+####   then boosts two-body relaxation (Coulomb log / diffusion coeffs).
+####   --disk covering: f_Omega of the circumnuclear disk (fiducial 0.2)
+####   --cloud mass: Msun; >0 holds M_MC fixed so boost ∝ n_MC (positive loop).
+####                 =0 uses the solved M_MC (nearly rate-independent nm2)
+####   --max boost: cap on t_rlx,* / t_rlx,MC
+####   --beamed udr: 1 = disk-fed (b=1); 0 = isotropic (b=f_Omega)
+####   --initial tde rate: yr^-1 seed used only while se_td%rate is still 0
+####                 (snap 1 / first get_simu_time_step). 0 = old behavior.
+
+engine feedback                 =0
+--disk covering                 =0.2
+--cloud mass                    =1.2e4
+--max boost                     =100
+--beamed udr                    =1
+--initial tde rate              =0
 
 ---------------------------------------------------------
 ####  The criteria of convergence of potential: convergence is achieved if less than the value

@@ -359,7 +359,13 @@ contains
 		class(particle_sample_type)::bkps
 		real(8) rtd, jlc,tmp
 		real(8),external::fpowerlaw_rnd, rnd
-		
+
+		! Gated IC: C2f sets disk fed j=1. C1f / default stay isotropic.
+		if(ctl%disk_fed_j.eq.1)then
+			! GL2026 disk-fed cusp: f_Ω~0.2 => 1-cosθ=0.2 => θ≈37°, j_disk=cosθ=0.8
+			bkps%jm=rnd(0.8d0, 0.99999d0)
+			return
+		end if
 		select case(ctl%boundary_fj)
 		case(boundary_fj_iso)
 			bkps%jm=fpowerlaw_rnd(1d0,0.0044d0,0.99999d0)  

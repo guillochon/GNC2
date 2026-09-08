@@ -34,6 +34,8 @@ module model_basic
 	! type(core_comp_type),pointer::cct_share
 	type(s1d_type),pointer::fc_share
 	type(s1d_type)::common_aux
+	! Per-thread scratch for adb / period integrals (sample loops are OpenMP'd).
+!$omp threadprivate(common_aux)
 	!type(s1d_ird_type)::common_jc
 	type(s2d_type)::common_dee_log, common_djj_log, common_pd_log
 	!type(s2d_type)::common_rp, common_ra
@@ -165,7 +167,9 @@ module model_basic
 		 
         integer num_clone_created, num_clone_elim, num_boundary_created
 		integer num_boundary_elim  
-        integer boundary_method, boundary_fj 
+        integer boundary_method, boundary_fj
+		! 1: IC jm uniform in [0.8, 1] (GL2026 disk-fed). 0: isotropic f(j)∝j.
+		integer::disk_fed_j=0 
 		integer num_step_per_update
 		integer n_spshot, n_spshot_bg, n_spshot_total
 		integer Dejmodel, include_loss_cone 
@@ -183,9 +187,25 @@ module model_basic
 		integer::init_adb_mbh_inc 
 		integer::two_body_relaxation_on
 
-		integer stellar_collision_pair_mode
-		integer stellar_collision_method
-		integer collision_consider_weight
+		integer::stellar_collision_pair_mode=1
+		integer::stellar_collision_method=0
+		integer::collision_consider_weight=0
+		real(8)::tmax_collision=1d99
+		real(8)::tfractor_collision=0.02d0
+
+		integer::engine_feedback=0
+		integer::engine_beamed=1
+		real(8)::engine_f_omega=0.2d0
+		real(8)::engine_cloud_mass=1.2d4
+		real(8)::engine_max_boost=1d2
+		real(8)::engine_init_tde_rate=0d0
+		real(8)::engine_relax_boost=1d0
+		real(8)::engine_nm2_cloud=0d0
+		real(8)::engine_n_mc=0d0
+		real(8)::engine_r_b=0d0
+		real(8)::engine_R_mc=0d0
+		real(8)::engine_M_mc=0d0
+		real(8)::engine_gamma_tde=0d0
 		
 		integer::del_cross_clone
 		integer::consider_by_types(5)
@@ -371,7 +391,9 @@ contains
 		case(exit_tidal_empty)
 			str_flag="TD EMPTY"
 		case(exit_tidal_full)
-			str_flag="TD FULL"        
+			str_flag="TD FULL"
+		case(exit_collision)
+			str_flag="COLLISION"
 		case default
 			str_flag="Null"
 		end select

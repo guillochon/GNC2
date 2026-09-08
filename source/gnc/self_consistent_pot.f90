@@ -110,6 +110,8 @@ subroutine adb_cor_indvd_replace(bks_org, spp0,sppc,adb_method)
         call cpu_time(t1)
     end if
 
+    ! Rank-local samples; common_aux is threadprivate. Same math as the serial loop.
+    !$omp parallel do default(shared) private(de_tmp, jph_dmless, jc_xy, jmor) schedule(static)
     do i=1, bks_org%n
         if(spp0%mbh_dmless.eq.0)then
             if(bks_org%sp(i)%x>emax_factor)then
@@ -149,6 +151,7 @@ subroutine adb_cor_indvd_replace(bks_org, spp0,sppc,adb_method)
         !read(*,*)
         !print*, "1:raq=",bks_org%sp(i)%raq
     end do
+    !$omp end parallel do
     !print*, "2"
     if(rid.eq.0)then
         call cpu_time(t2)
@@ -341,6 +344,7 @@ subroutine get_system_dstr_adb_cor_one_time( )
         call cpu_time(t1)
     end if 
     spp_old=spp_new
+    ! Pre-adb: refresh rp,ra,period (adb_fast uses period). Not the same as the post-adb no_pd pass.
     call get_sample_para(dms,bksams_arr_norm,ctl%replace_sample_eceed_emax,spp_new)
     if(ctl%adb_est_method.eq.adb_est_method_acc)then
         call get_sample_raq(bksams_arr_norm,spp_new)

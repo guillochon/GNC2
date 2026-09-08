@@ -85,9 +85,11 @@ subroutine apply_paras()
 			case("mbh mass growth")
 				read(unit=pvalue, fmt=*) ctl%enable_evl_mbh
 				if(ctl%enable_evl_mbh.ge.1)then
-					call tp%get_sub_para("--initial gas reservoir", str,ier)
-					!print*, "get sub str=", str
-					read(unit=str,fmt=*) mbh_mmg%gas_reservior_left
+					mbh_mmg%gas_reservior_left=0d0
+					call tp%get_sub_para_optional("--initial gas reservoir", str,ier)
+					if(ier.eq.0)then
+						read(unit=str,fmt=*) mbh_mmg%gas_reservior_left
+					end if
 				end if
 			case("init adiabatically response of mbh")
 				read(unit=pvalue, fmt=*) ctl%init_adb_mbh_inc
@@ -165,6 +167,8 @@ subroutine apply_paras()
 					print*, "error! define fj type", ctl%str_fj_bd
 					stop
 				end select
+			case("disk fed j")
+				read(unit=pvalue,fmt=*) ctl%disk_fed_j
 			case("bin type of energy")
 				read(unit=pvalue,fmt=*) ctl%str_ebin_type
 				select case(trim(adjustl(ctl%str_ebin_type))) 
@@ -262,6 +266,35 @@ subroutine apply_paras()
 				read(unit=pvalue,fmt=*) ctl%output_dms_freq
 			case("two body relaxation")
 				read(unit=pvalue,fmt=*) ctl%two_body_relaxation_on
+			case("stellar collisions")
+				read(unit=pvalue,fmt=*) ctl%stellar_collision_method
+				if(tp%nsub.gt.0)then
+					call tp%get_sub_para("--pair mode",str,ier)
+					read(unit=str,fmt=*) ctl%stellar_collision_pair_mode
+					call tp%get_sub_para("--consider weight",str,ier)
+					read(unit=str,fmt=*) ctl%collision_consider_weight
+					call tp%get_sub_para("--timestep fraction",str,ier)
+					read(unit=str,fmt=*) ctl%tfractor_collision
+				end if
+				ctl%tmax_collision=1d99
+			case("engine feedback")
+				read(unit=pvalue,fmt=*) ctl%engine_feedback
+				if(tp%nsub.gt.0)then
+					call tp%get_sub_para("--disk covering",str,ier)
+					read(unit=str,fmt=*) ctl%engine_f_omega
+					call tp%get_sub_para("--cloud mass",str,ier)
+					read(unit=str,fmt=*) ctl%engine_cloud_mass
+					call tp%get_sub_para("--max boost",str,ier)
+					read(unit=str,fmt=*) ctl%engine_max_boost
+					call tp%get_sub_para("--beamed udr",str,ier)
+					read(unit=str,fmt=*) ctl%engine_beamed
+					! Optional: snap-1 seed so the first DC build has Gamma>0.
+					! Missing key keeps the default 0 (old behavior).
+					call tp%get_sub_para_optional("--initial tde rate",str,ier)
+					if(ier.eq.0)then
+						read(unit=str,fmt=*) ctl%engine_init_tde_rate
+					end if
+				end if
 			case("convergence of potential critical value")
 				read(unit=pvalue,fmt=*)  ctl%gx_conv_cri 
 			case("max iteration of potential convergence")

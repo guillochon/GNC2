@@ -187,7 +187,7 @@ contains
 		implicit none
 		type(s1d_type)::fden
 		real(8) rho_tmp,rho_tot,phi_tmp,vh,n_phys,logr,r_xy
-		real(8) gamma_max,gamma_r,sig,vrel,n_j,v_char
+		real(8) gamma_max,gamma_pop,gamma_r,sig,vrel,n_j,v_char,wmax,wbin
 		real(8),external::star_Radius
 		integer i,k,j,igmax
 
@@ -298,20 +298,44 @@ contains
 			coll_n_collid%fx(i)=n_phys*gamma_r
 		end do
 
-		gamma_max=maxval(coll_gamma%fx)
-		if(gamma_max.gt.0d0.and.ieee_is_finite(gamma_max))then
-			ctl%tmax_collision=ctl%tfractor_collision/gamma_max
+		! Local Gamma in the empty inner cusp can be ~1/Myr even when
+		! almost no mass lives there (C0c: M(<10 AU)~0.02 Msun). The
+		! destruction operator already uses orbit-averaged <Gamma>, so
+		! timestep only on populated bins: n r^3 above 1e-4 of its max.
+		gamma_max=0d0
+		do i=1,coll_gamma%nbin
+			if(coll_gamma%fx(i).gt.gamma_max) gamma_max=coll_gamma%fx(i)
+		end do
+		wmax=0d0
+		do i=1,coll_n_phys%nbin
+			r_xy=10**coll_n_phys%xb(i)
+			wbin=coll_n_phys%fx(i)*r_xy*r_xy*r_xy
+			if(wbin.gt.wmax) wmax=wbin
+		end do
+		gamma_pop=0d0
+		igmax=1
+		do i=1,coll_gamma%nbin
+			r_xy=10**coll_gamma%xb(i)
+			wbin=coll_n_phys%fx(i)*r_xy*r_xy*r_xy
+			if(wmax.gt.0d0.and.wbin.ge.1d-4*wmax)then
+				if(coll_gamma%fx(i).gt.gamma_pop)then
+					gamma_pop=coll_gamma%fx(i)
+					igmax=i
+				end if
+			end if
+		end do
+		if(gamma_pop.gt.0d0.and.ieee_is_finite(gamma_pop))then
+			ctl%tmax_collision=ctl%tfractor_collision/gamma_pop
 		else
 			ctl%tmax_collision=1d99
 		end if
 		coll_tables_ready=.true.
 
 		if(rid.eq.0)then
-			igmax=maxloc(coll_gamma%fx,1)
-			print*, "stellar collision: gamma_max(1/Myr), tmax_collision(Myr)=", &
-				gamma_max, ctl%tmax_collision
+			print*, "stellar collision: gamma_max_all, gamma_pop(1/Myr), tmax_collision(Myr)=", &
+				gamma_max, gamma_pop, ctl%tmax_collision
 			if(igmax.ge.1.and.igmax.le.coll_gamma%nbin)then
-				print*, "stellar collision: logr, r/r0, vrel, n_phys at gamma_max=", &
+				print*, "stellar collision: logr, r/r0, vrel, n_phys at gamma_pop=", &
 					coll_gamma%xb(igmax), 10**coll_gamma%xb(igmax), &
 					coll_vrel%fx(igmax), coll_n_phys%fx(igmax)
 			end if

@@ -1,6 +1,12 @@
-! Orbit-averaged destructive star-star collisions.
+! Orbit-averaged star-star collisions.
 ! Local rate Gamma(r) = n(r) * sigma * v_rel(r), with gravitational focusing.
-! Samples are destroyed with p = 1 - exp(-<Gamma> dt), same bookkeeping as TDE exit.
+! A sample is hit with p = 1 - exp(-<Gamma> dt). Outcome vs surface escape:
+!   v_rel <  v_esc = sqrt(2G(M1+M2)/(R1+R2))  -> merger: keep the sample,
+!     redraw J uniform in (0, Jc], recompute (rp,ra,P). GL2026: collision
+!     randomizes the orbit and usually kicks it out of the loss cone.
+!   v_rel >= v_esc  -> destroy both (exit_collision), as before.
+! Mass is not grown: the operator is one-body vs a field (no second MC
+! sample), and discrete mass bins + clone weights cannot host M1+M2.
 module md_particle_collision
 	use com_main_gw
 	use,intrinsic::ieee_arithmetic
@@ -24,10 +30,10 @@ module md_particle_collision
 	real(8),parameter::code_time_to_myr=2d0*pi*1d6
 	integer,parameter::nquad_orbit=48
 
-	private::collision_sigma,get_vrel_at_logr
+	private::collision_sigma,collision_vesc,get_vrel_at_logr
 	private::sample_is_collidable,sample_collision_radius
 	private::orbit_average_gamma,gamma_at_r_for_sample
-	private::select_fden
+	private::select_fden,apply_collision_outcome,merge_collision_remnant
 
 contains
 
@@ -48,6 +54,19 @@ contains
 		focus=1d0+2d0*(m1+m2)/(rsum*v2)
 		if(focus.gt.1d6) focus=1d6
 		collision_sigma=pi*rsum*rsum*focus
+	end function
+
+	! G=1 AU/Msun, same units as collision_sigma / star_Radius.
+	real(8) function collision_vesc(r1,r2,m1,m2)
+		implicit none
+		real(8),intent(in)::r1,r2,m1,m2
+		real(8) rsum
+		rsum=r1+r2
+		if(rsum.le.0d0.or.m1+m2.le.0d0)then
+			collision_vesc=0d0
+			return
+		end if
+		collision_vesc=sqrt(2d0*(m1+m2)/rsum)
 	end function
 
 	subroutine select_fden(so,fden)
@@ -342,17 +361,65 @@ contains
 		end if
 	end subroutine
 
+	subroutine merge_collision_remnant(sp)
+		implicit none
+		type(particle_sample_type),intent(inout)::sp
+		real(8) jm_new
+		real(8),external::rnd
+		! Uniform J in (0, Jc]: jm = J/Jc. Does not change M, weight, or bin.
+		jm_new=rnd(0d0,1d0)
+		if(jm_new.le.0d0) jm_new=jmin_value
+		call set_jm_bound(jm_new)
+		sp%jm=jm_new
+		sp%jph=sp%jm*sp%jc
+		call update_sample_para(sp,spp_new)
+	end subroutine
+
+	subroutine apply_collision_outcome(sp,idx,n_merge,n_destroy)
+		implicit none
+		type(particle_sample_type),intent(inout)::sp
+		integer,intent(in)::idx
+		integer,intent(inout)::n_merge,n_destroy
+		real(8) r_xy,vrel,vesc,r1,r2,m1,m2
+		r1=sample_collision_radius(sp)
+		m1=sp%m
+		if(idx.ge.1.and.idx.le.coll_nmb)then
+			m2=coll_M_mb(idx)
+			r2=coll_R_mb(idx)
+		else
+			m2=m1
+			r2=r1
+		end if
+		vesc=collision_vesc(r1,r2,m1,m2)
+		r_xy=0.5d0*(sp%rp+sp%ra)/r0_cl
+		if(r_xy.le.0d0) r_xy=sp%rp/r0_cl
+		vrel=0d0
+		if(r_xy.gt.0d0) call get_vrel_at_logr(log10(r_xy),vrel)
+		! Slow / focused: keep the star, randomize J out of the loss cone.
+		! Fast / head-on, or unknown vrel: shred (exit_collision).
+		if(vrel.gt.0d0.and.vesc.gt.0d0.and.vrel.lt.vesc)then
+			call merge_collision_remnant(sp)
+			n_merge=n_merge+1
+		else
+			sp%exit_flag=exit_collision
+			sp%exit_time=ctl%run_snap_time_f
+			n_destroy=n_destroy+1
+		end if
+	end subroutine
+
 	subroutine apply_stellar_collision_operator(dt)
 		implicit none
 		real(8),intent(in)::dt
 		type(chain_pointer_type),pointer::ps
-		real(8) gamma_avg,p_destroy,surv
+		real(8) gamma_avg,p_hit,surv
 		real(8),external::rnd
-		integer idx
+		integer idx,n_merge,n_destroy
 		if(ctl%stellar_collision_method.lt.stellar_collision_method_oa_destroy) return
 		if(.not.coll_tables_ready) return
 		if(dt.le.0d0) return
 
+		n_merge=0
+		n_destroy=0
 		ps=>bksams%head
 		do while(associated(ps))
 			select type(ca=>ps%ob)
@@ -362,20 +429,22 @@ contains
 					if(idx.lt.1) idx=1
 					call orbit_average_gamma(ca,idx,gamma_avg)
 					if(gamma_avg.gt.0d0)then
-						p_destroy=1d0-exp(-gamma_avg*dt)
-						if(p_destroy.gt.1d0) p_destroy=1d0
+						p_hit=1d0-exp(-gamma_avg*dt)
+						if(p_hit.gt.1d0) p_hit=1d0
 						if(ctl%collision_consider_weight.ge.1)then
 							surv=exp(-gamma_avg*dt)
 							ca%weight_n=ca%weight_n*surv
 							ca%weight_real=ca%weight_clone*ca%weight_n*ctl%n_basic
-							if(ca%weight_real.lt.1d-12.or.rnd(0d0,1d0).lt.p_destroy)then
+							if(ca%weight_real.lt.1d-12)then
 								ca%exit_flag=exit_collision
 								ca%exit_time=ctl%run_snap_time_f
+								n_destroy=n_destroy+1
+							elseif(rnd(0d0,1d0).lt.p_hit)then
+								call apply_collision_outcome(ca,idx,n_merge,n_destroy)
 							end if
 						else
-							if(rnd(0d0,1d0).lt.p_destroy)then
-								ca%exit_flag=exit_collision
-								ca%exit_time=ctl%run_snap_time_f
+							if(rnd(0d0,1d0).lt.p_hit)then
+								call apply_collision_outcome(ca,idx,n_merge,n_destroy)
 							end if
 						end if
 					end if
@@ -383,6 +452,10 @@ contains
 			end select
 			ps=>ps%next
 		end do
+		if(rid.eq.0)then
+			print*, "stellar collision operator: n_merge, n_destroy (rank0)=", &
+				n_merge, n_destroy
+		end if
 	end subroutine
 
 end module

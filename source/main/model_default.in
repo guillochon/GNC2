@@ -196,11 +196,15 @@ minimum number of samples in mass bin = 40
 two body relaxation             =1
 
 ---------------------------------------------------------
-####   Whether turn on orbit-averaged destructive star-star collisions
-####   Default OFF. When =1, samples are removed with p=1-exp(-<Gamma> dt)
+####   Whether turn on orbit-averaged star-star collisions
+####   Default OFF. When =1, samples are hit with p=1-exp(-<Gamma> dt)
 ####   using Gamma(r)=n sigma v_rel and gravitational focusing.
+####   Outcome: v_rel < vesc=sqrt(2G(M1+M2)/(R1+R2)) keeps the sample and
+####   redraws J uniform in (0,Jc] (merger / orbit randomization);
+####   v_rel >= vesc destroys the sample (exit_collision).
+####   Mass is not grown (one-body vs field; discrete bins).
 ####   --pair mode = 0: same mass bin only; =1: all-pairs n sigma v
-####   --consider weight = 0: Bernoulli destroy; =1: also reduce sample weight
+####   --consider weight = 0: Bernoulli hit; =1: also reduce sample weight
 ####   --timestep fraction: cap snapshot dt by this times the minimum collision time
 
 stellar collisions              =0

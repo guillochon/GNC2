@@ -48,6 +48,8 @@ subroutine get_sample_para(dm,bks,replace,spp)
     !energy_range_covered=.true.
     !xmin=bks%sp(1)%x
     !xmax=xmin
+    ! Rank-local samples. Period path uses threadprivate common_aux.
+    !$omp parallel do default(shared) schedule(static)
     do i=1, bks%n
         !if(xmin>bks%sp(i)%x) xmin=bks%sp(i)%x
         !if(xmax<bks%sp(i)%x) xmax=bks%sp(i)%x
@@ -66,6 +68,7 @@ subroutine get_sample_para(dm,bks,replace,spp)
         end if
         call get_sample_para_one(dm,bks%sp(i),spp)
     end do
+    !$omp end parallel do
     if(rid.eq.0)then
         call cpu_time(t2)
     end if
@@ -92,6 +95,8 @@ subroutine get_sample_para_no_pd(dm,bks,replace,spp)
     !xmax=xmin
     !print*, "get_sample_para_no_pd",rid
     self_correction_emax=0
+    ! Post-adb refresh (no period). Required after x,jm shift; not a duplicate of get_sample_para.
+    !$omp parallel do default(shared) reduction(+:self_correction_emax) schedule(static)
     do i=1, bks%n
         !if(xmin>bks%sp(i)%x) xmin=bks%sp(i)%x
         !if(xmax<bks%sp(i)%x) xmax=bks%sp(i)%x
@@ -110,6 +115,7 @@ subroutine get_sample_para_no_pd(dm,bks,replace,spp)
         end if
         call get_sample_para_one_no_pd(dm,bks%sp(i),spp)
     end do
+    !$omp end parallel do
     call collection_int(self_correction_emax)
     if(rid.eq.0)then
         call cpu_time(t2)

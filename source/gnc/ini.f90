@@ -139,10 +139,13 @@ subroutine init_model_ctl()
 
 	!call aux_for_de%init(0d0,1d0,ctl%diff_coeff_bins,sts_type_grid)
 	!call aux_for_de%set_range()
+	! common_aux is threadprivate; init every OpenMP thread's copy (OMP_NUM_THREADS=1 is a no-op).
+	!$omp parallel private(i)
 	call common_aux%init(0d0, pi/2d0, aux_function_bin_size, sts_type_grid)
 	do i=1, common_aux%nbin
 		common_aux%xb(i)=pi/2d0*((i-1)/dble(aux_function_bin_size-1))**2
 	end do
+	!$omp end parallel
 	if(allocated(ctl%ini_stellar_tot))then
 		deallocate(ctl%ini_stellar_tot ,ctl%ini_stellar_each_mass)
 	end if

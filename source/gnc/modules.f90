@@ -34,6 +34,8 @@ module model_basic
 	! type(core_comp_type),pointer::cct_share
 	type(s1d_type),pointer::fc_share
 	type(s1d_type)::common_aux
+	! Per-thread scratch for adb / period integrals (sample loops are OpenMP'd).
+!$omp threadprivate(common_aux)
 	!type(s1d_ird_type)::common_jc
 	type(s2d_type)::common_dee_log, common_djj_log, common_pd_log
 	!type(s2d_type)::common_rp, common_ra
@@ -165,7 +167,9 @@ module model_basic
 		 
         integer num_clone_created, num_clone_elim, num_boundary_created
 		integer num_boundary_elim  
-        integer boundary_method, boundary_fj 
+        integer boundary_method, boundary_fj
+		! 1: IC jm uniform in [0.8, 1] (GL2026 disk-fed). 0: isotropic f(j)∝j.
+		integer::disk_fed_j=0 
 		integer num_step_per_update
 		integer n_spshot, n_spshot_bg, n_spshot_total
 		integer Dejmodel, include_loss_cone 

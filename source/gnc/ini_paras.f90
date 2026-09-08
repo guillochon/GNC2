@@ -167,6 +167,8 @@ subroutine apply_paras()
 					print*, "error! define fj type", ctl%str_fj_bd
 					stop
 				end select
+			case("disk fed j")
+				read(unit=pvalue,fmt=*) ctl%disk_fed_j
 			case("bin type of energy")
 				read(unit=pvalue,fmt=*) ctl%str_ebin_type
 				select case(trim(adjustl(ctl%str_ebin_type))) 

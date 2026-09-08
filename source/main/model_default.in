@@ -9,6 +9,10 @@
 ####   Can only be ``ISO'' 
 
 init type of f(j)   =ISO
+####   Optional IC override: 1 draws jm uniform in [0.8, 1] (GL2026 disk-fed).
+####   Default 0 keeps isotropic f(j)∝j from the ISO case above. C1f must stay 0.
+
+disk fed j = 0
 
 ------------------------------------------------------------------
 ####   Initially the cluster response adiabatically with growth of MBH mass (before the main run)

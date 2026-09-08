@@ -20,8 +20,9 @@ endif
 libdir:=$(dir)glib/com/
 outdir:=$(dir)glib/gnc/
 mobsedir:=$(dir)glib/mobse/
+# Production: -O3, no runtime array checks. Debug used to add -fcheck=all -fbounds-check.
 FLAG= -O3 -fopenmp -fbacktrace \
-		-L$(libdir) -I$(libdir) -lmycom2 -fcheck=all -Waliasing -Wuninitialized -fbounds-check   -cpp \
+		-L$(libdir) -I$(libdir) -lmycom2 -Waliasing -Wuninitialized -cpp \
 		-fimplicit-none -ffast-math -malign-double
 ifeq ($(use_mobse),1)
 	FLAG+=-L$(mobsedir) -I$(mobsedir) -lmobse -DMOBSE
